@@ -94,24 +94,11 @@ function renderData(data) {
         preview.innerHTML = `<div class="text">${escapeHtml(data.message)}</div>`;
     } else if (data.type === "image") {
         preview.innerHTML = `<img src="${API_BASE}${data.image_url}" />`;
-    } else if (data.type === "weather") {
-        preview.innerHTML = `<div class="weather">${escapeHtml(data.text)}</div>`;
     }
 
     preview.classList.remove("fade-in");
     void preview.offsetWidth;
     preview.classList.add("fade-in");
-}
-
-
-// Stage weather forecast
-async function sendWeather() {
-    const res = await fetch(`${API_BASE}/send_weather`, { method: "POST" });
-    if (res.ok) {
-        setStatus("Weather staged 🌤️");
-    } else {
-        setStatus("Failed to fetch weather ❌");
-    }
 }
 
 
