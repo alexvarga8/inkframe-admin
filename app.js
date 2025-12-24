@@ -131,6 +131,18 @@ async function loadLatest() {
     }
 }
 
+async function requestUpdate() {
+    const res = await fetch(`${API_BASE}/request_update`, {
+        method: "POST"
+    });
+
+    if (res.ok) {
+        setStatus("Update requested ⏳ The frame will refresh shortly");
+    } else {
+        setStatus("Failed to request update ❌");
+    }
+}
+
 // Initialize
 async function init() {
     await fetchIdleArt();
