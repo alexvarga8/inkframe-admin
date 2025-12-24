@@ -186,55 +186,62 @@ async function loadIdleGallery() {
 
     try {
         const res = await fetch(`${API_BASE}/idle_art_list`);
-        if (res.ok) {
-            const data = await res.json();
-            data.images.forEach(imgUrl => {
-                const filename = imgUrl.split("/").pop();
+        if (!res.ok) throw new Error("Failed to fetch idle art list");
 
-                const div = document.createElement("div");
-                div.style.position = "relative";
+        const data = await res.json();
+        console.log("Idle art list:", data.images); // Debug
 
-                const img = document.createElement("img");
-                img.src = `${API_BASE}${imgUrl}`;
-                img.style.width = "120px";
-                img.style.height = "80px";
-                img.style.objectFit = "cover";
-                img.style.border = "1px solid #333";
-                img.style.borderRadius = "6px";
+        data.images.forEach(imgUrl => {
+            const filename = imgUrl.split("/").pop();
 
-                const btn = document.createElement("button");
-                btn.innerText = "✖";
-                btn.style.position = "absolute";
-                btn.style.top = "2px";
-                btn.style.right = "2px";
-                btn.style.background = "rgba(255,0,0,0.8)";
-                btn.style.color = "#fff";
-                btn.style.border = "none";
-                btn.style.cursor = "pointer";
-                btn.style.borderRadius = "50%";
-                btn.style.width = "20px";
-                btn.style.height = "20px";
-                btn.onclick = async () => {
-                    if (!confirm("Delete this idle art?")) return;
-                    const res = await fetch(`${API_BASE}/idle_art?filename=${filename}`, { method: "DELETE" });
-                    if (res.ok) {
-                        setStatus(`${filename} deleted`);
-                        await fetchIdleArt();      // refresh idle art list
-                        await loadIdleGallery();   // refresh gallery
-                    } else {
-                        setStatus("Failed to delete ❌");
-                    }
-                };
+            const div = document.createElement("div");
+            div.style.position = "relative";
+            div.style.width = "120px";
+            div.style.height = "80px";
 
-                div.appendChild(img);
-                div.appendChild(btn);
-                gallery.appendChild(div);
-            });
-        }
+            const img = document.createElement("img");
+            img.src = `${API_BASE}${imgUrl}`;
+            img.style.width = "100%";
+            img.style.height = "100%";
+            img.style.objectFit = "cover";
+            img.style.border = "1px solid #333";
+            img.style.borderRadius = "6px";
+
+            const btn = document.createElement("button");
+            btn.innerText = "✖";
+            btn.style.position = "absolute";
+            btn.style.top = "2px";
+            btn.style.right = "2px";
+            btn.style.background = "rgba(255,0,0,0.8)";
+            btn.style.color = "#fff";
+            btn.style.border = "none";
+            btn.style.cursor = "pointer";
+            btn.style.borderRadius = "50%";
+            btn.style.width = "20px";
+            btn.style.height = "20px";
+
+            btn.onclick = async () => {
+                if (!confirm("Delete this idle art?")) return;
+                const res = await fetch(`${API_BASE}/idle_art?filename=${filename}`, { method: "DELETE" });
+                if (res.ok) {
+                    setStatus(`${filename} deleted`);
+                    await fetchIdleArt();      
+                    await loadIdleGallery();   
+                } else {
+                    setStatus("Failed to delete ❌");
+                }
+            };
+
+            div.appendChild(img);
+            div.appendChild(btn);
+            gallery.appendChild(div);
+        });
     } catch (e) {
+        console.error(e);
         gallery.innerHTML = "<em>Error loading idle art</em>";
     }
 }
+
 
 // -----------------------------
 // Initialize
