@@ -3,7 +3,9 @@ const API_BASE = "https://message-server-lurk.onrender.com";
 let IDLE_ART = [];
 let idleIndex = 0;
 
+// -----------------------------
 // Fetch idle art from backend
+// -----------------------------
 async function fetchIdleArt() {
     try {
         const res = await fetch(`${API_BASE}/idle_art_list`);
@@ -16,7 +18,9 @@ async function fetchIdleArt() {
     }
 }
 
+// -----------------------------
 // Send text
+// -----------------------------
 async function sendText() {
     const textarea = document.getElementById("textMessage");
     const text = textarea.value.trim();
@@ -34,7 +38,9 @@ async function sendText() {
     }
 }
 
-// Send image
+// -----------------------------
+// Send image as message
+// -----------------------------
 async function sendImage() {
     const input = document.getElementById("imageFile");
     if (!input.files.length) return alert("Choose an image");
@@ -51,7 +57,30 @@ async function sendImage() {
     }
 }
 
+// -----------------------------
+// Send image to idle art
+// -----------------------------
+async function sendIdleArt() {
+    const input = document.getElementById("idleImageFile");
+    if (!input.files.length) return alert("Choose an image");
+
+    const formData = new FormData();
+    formData.append("file", input.files[0]);
+
+    const res = await fetch(`${API_BASE}/upload_idle_art`, { method: "POST", body: formData });
+    if (res.ok) {
+        input.value = "";
+        setStatus("Idle art uploaded 🖼️");
+        await fetchIdleArt();      // refresh idle art list
+        await loadIdleGallery();   // refresh gallery display
+    } else {
+        setStatus("Failed to upload ❌");
+    }
+}
+
+// -----------------------------
 // Display latest staged
+// -----------------------------
 async function displayMessage() {
     const res = await fetch(`${API_BASE}/display`, { method: "POST" });
     if (res.ok) {
@@ -62,7 +91,9 @@ async function displayMessage() {
     }
 }
 
+// -----------------------------
 // Clear display
+// -----------------------------
 async function clearDisplay() {
     const res = await fetch(`${API_BASE}/clear_display`, { method: "POST" });
     if (res.ok) {
@@ -71,21 +102,23 @@ async function clearDisplay() {
     }
 }
 
+// -----------------------------
+// Status helper
+// -----------------------------
 function setStatus(msg) {
     document.getElementById("status").innerText = msg;
 }
 
-// Format timestamp nicely
-function formatTimestamp(ts) {
-    const d = new Date(ts * 1000);
-    return d.toLocaleString();
-}
-
+// -----------------------------
+// Escape HTML
+// -----------------------------
 function escapeHtml(text) {
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// -----------------------------
 // Render displayed message/image
+// -----------------------------
 function renderData(data) {
     const preview = document.getElementById("preview");
     if (!data) return;
@@ -101,8 +134,9 @@ function renderData(data) {
     preview.classList.add("fade-in");
 }
 
-
+// -----------------------------
 // Load latest or show idle art
+// -----------------------------
 async function loadLatest() {
     const preview = document.getElementById("preview");
 
@@ -131,11 +165,11 @@ async function loadLatest() {
     }
 }
 
+// -----------------------------
+// Request client update
+// -----------------------------
 async function requestUpdate() {
-    const res = await fetch(`${API_BASE}/request_update`, {
-        method: "POST"
-    });
-
+    const res = await fetch(`${API_BASE}/request_update`, { method: "POST" });
     if (res.ok) {
         setStatus("Update requested ⏳ The frame will refresh shortly");
     } else {
@@ -143,9 +177,71 @@ async function requestUpdate() {
     }
 }
 
+// -----------------------------
+// Idle art gallery with deletion
+// -----------------------------
+async function loadIdleGallery() {
+    const gallery = document.getElementById("idleGallery");
+    gallery.innerHTML = "";
+
+    try {
+        const res = await fetch(`${API_BASE}/idle_art_list`);
+        if (res.ok) {
+            const data = await res.json();
+            data.images.forEach(imgUrl => {
+                const filename = imgUrl.split("/").pop();
+
+                const div = document.createElement("div");
+                div.style.position = "relative";
+
+                const img = document.createElement("img");
+                img.src = `${API_BASE}${imgUrl}`;
+                img.style.width = "120px";
+                img.style.height = "80px";
+                img.style.objectFit = "cover";
+                img.style.border = "1px solid #333";
+                img.style.borderRadius = "6px";
+
+                const btn = document.createElement("button");
+                btn.innerText = "✖";
+                btn.style.position = "absolute";
+                btn.style.top = "2px";
+                btn.style.right = "2px";
+                btn.style.background = "rgba(255,0,0,0.8)";
+                btn.style.color = "#fff";
+                btn.style.border = "none";
+                btn.style.cursor = "pointer";
+                btn.style.borderRadius = "50%";
+                btn.style.width = "20px";
+                btn.style.height = "20px";
+                btn.onclick = async () => {
+                    if (!confirm("Delete this idle art?")) return;
+                    const res = await fetch(`${API_BASE}/idle_art?filename=${filename}`, { method: "DELETE" });
+                    if (res.ok) {
+                        setStatus(`${filename} deleted`);
+                        await fetchIdleArt();      // refresh idle art list
+                        await loadIdleGallery();   // refresh gallery
+                    } else {
+                        setStatus("Failed to delete ❌");
+                    }
+                };
+
+                div.appendChild(img);
+                div.appendChild(btn);
+                gallery.appendChild(div);
+            });
+        }
+    } catch (e) {
+        gallery.innerHTML = "<em>Error loading idle art</em>";
+    }
+}
+
+// -----------------------------
 // Initialize
+// -----------------------------
 async function init() {
     await fetchIdleArt();
+    await loadIdleGallery();
     loadLatest();
     setInterval(loadLatest, 15000); // refresh every 15s
 }

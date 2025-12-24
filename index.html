@@ -30,6 +30,20 @@
       </section>
 
       <section>
+        <h2>Add Idle Art</h2>
+        <input type="file" id="idleImageFile" accept="image/*" />
+        <button onclick="sendIdleArt()">Upload to Idle Art</button>
+      </section>
+
+      <section>
+        <h2>Idle Art Gallery</h2>
+        <div
+          id="idleGallery"
+          style="display: flex; flex-wrap: wrap; gap: 10px"
+        ></div>
+      </section>
+
+      <section>
         <h2>Display Control</h2>
         <button onclick="displayMessage()">Display Latest</button>
         <button onclick="clearDisplay()">Clear Display</button>
