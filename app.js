@@ -26,8 +26,15 @@ async function sendText() {
     const text = textarea.value.trim();
     if (!text) return alert("Write something first");
 
+    const alignment = document.getElementById("textAlignment").value;
+    const layout = document.getElementById("textLayout").value;
+    const temp_msg = document.getElementById("tempMessage").value.trim() || null;
+
     const formData = new FormData();
     formData.append("text", text);
+    formData.append("alignment", alignment);
+    formData.append("layout", layout);
+    if(temp_msg) formData.append("temp_msg", temp_msg);
 
     const res = await fetch(`${API_BASE}/send_text`, { method: "POST", body: formData });
     if (res.ok) {
@@ -35,6 +42,29 @@ async function sendText() {
         setStatus("Text uploaded 💌");
     } else {
         setStatus("Failed to upload ❌");
+    }
+}
+
+async function surpriseArt() {
+    try {
+        const res = await fetch(`${API_BASE}/surprise_art`);
+        if (!res.ok) throw new Error("Failed to fetch surprise art");
+        const data = await res.json();
+        if(data.image_url){
+            // Upload as idle art
+            const formData = new FormData();
+            const blob = await fetch(data.image_url).then(r=>r.blob());
+            formData.append("file", blob, "surprise.jpg");
+            const upload = await fetch(`${API_BASE}/upload_idle_art`, {method:"POST", body:formData});
+            if(upload.ok){
+                setStatus("Surprise art added 🖼️");
+                await fetchIdleArt();
+                await loadIdleGallery();
+            }
+        }
+    } catch(e){
+        console.error(e);
+        setStatus("Failed to fetch surprise art ❌");
     }
 }
 
