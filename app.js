@@ -129,6 +129,85 @@ async function sendImageWithMessage() {
     }, "image/jpeg", 0.9);
 }
 
+// -----------------------------
+// Generate AI image
+// -----------------------------
+async function generateAIImage() {
+    const prompt = document.getElementById("aiPrompt").value.trim();
+    const temp_msg = document.getElementById("aiTempMessage").value.trim();
+
+    if (!prompt) return alert("Please enter a prompt!");
+
+    setStatus("Generating AI image… ⏳");
+
+    try {
+        // Call your backend AI generation endpoint
+        const res = await fetch(`${API_BASE}/generate_ai_image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) throw new Error("AI generation failed");
+        const data = await res.json();
+
+        if (!data.image_url) throw new Error("No image returned");
+
+        // Show preview
+        const preview = document.getElementById("aiPreview");
+        preview.innerHTML = `<img src="${API_BASE}${data.image_url}" />`;
+
+        // Auto-upload to display
+        const formData = new FormData();
+        const blob = await fetch(`${API_BASE}${data.image_url}`).then(r => r.blob());
+        formData.append("file", blob, "ai_generated.png");
+        if(temp_msg) formData.append("temp_msg", temp_msg);
+
+        const uploadRes = await fetch(`${API_BASE}/send_image`, { method: "POST", body: formData });
+        if(uploadRes.ok){
+            setStatus("AI Image generated and uploaded 🖼️");
+            document.getElementById("aiPrompt").value = "";
+            document.getElementById("aiTempMessage").value = "";
+        } else {
+            setStatus("Failed to upload AI image ❌");
+        }
+
+    } catch(e) {
+        console.error(e);
+        setStatus("AI generation failed ❌");
+    }
+}
+
+
+async function surpriseMetArt() {
+    try {
+        const res = await fetch(`${API_BASE}/random_met_art`);
+        if (!res.ok) throw new Error("Failed to fetch Met art");
+        const data = await res.json();
+        if (data.status !== "ok") throw new Error(data.message);
+
+        const imageUrl = data.image_url;
+
+        // Upload to idle art so it can cycle
+        const blob = await fetch(imageUrl).then(r => r.blob());
+        const formData = new FormData();
+        formData.append("file", blob, "met_art.jpg");
+        formData.append("temp_msg", `${data.title} — ${data.artist}`);
+
+        const uploadRes = await fetch(`${API_BASE}/upload_idle_art`, { method: "POST", body: formData });
+        if (uploadRes.ok) {
+            setStatus(`Added to idle art: "${data.title}" by ${data.artist}`);
+            await fetchIdleArt();
+            await loadIdleGallery();
+        } else {
+            setStatus("Failed to upload Met art ❌");
+        }
+
+    } catch (e) {
+        console.error(e);
+        setStatus("Error fetching Met art ❌");
+    }
+}
 
 
 // -----------------------------

@@ -64,6 +64,26 @@
       </section>
 
       <section>
+        <h2>Surprise Art</h2>
+        <button onclick="surpriseArt()">🎨 Surprise Me</button>
+        <button onclick="surpriseMetArt()">🖌️ Surprise Met Painting</button>
+      </section>
+
+      <section>
+        <h2>Generate AI Image</h2>
+        <textarea id="aiPrompt" placeholder="Describe your image…"></textarea>
+        <input
+          type="text"
+          id="aiTempMessage"
+          placeholder="Optional caption/message…"
+        />
+        <button onclick="generateAIImage()">Generate & Upload</button>
+        <div id="aiPreview" class="eink-frame" style="margin-top: 10px">
+          <em>AI preview will appear here</em>
+        </div>
+      </section>
+
+      <section>
         <h2>Add Idle Art</h2>
         <input type="file" id="idleImageFile" accept="image/*" />
         <button onclick="sendIdleArt()">Upload to Idle Art</button>
