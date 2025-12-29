@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>InkFrame</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- Cropper.js CSS -->
+    <link
+      href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css"
+      rel="stylesheet"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@300;400&display=swap"
       rel="stylesheet"
     />
   </head>
+  <!-- Cropper.js JS -->
+  <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <body>
     <div class="container">
       <h1>InkFrame</h1>
@@ -50,6 +57,9 @@
           id="imageMessage"
           placeholder="Optional caption/message…"
         ></textarea>
+        <div style="margin-top: 10px">
+          <img id="cropPreview" style="max-width: 100%; display: none" />
+        </div>
         <button onclick="sendImageWithMessage()">Upload</button>
       </section>
 

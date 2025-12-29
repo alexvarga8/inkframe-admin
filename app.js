@@ -3,6 +3,33 @@ const API_BASE = "https://message-server-lurk.onrender.com";
 let IDLE_ART = [];
 let idleIndex = 0;
 
+let cropper = null;
+const imageInput = document.getElementById("imageFile");
+const cropPreview = document.getElementById("cropPreview");
+
+imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    cropPreview.src = url;
+    cropPreview.style.display = "block";
+
+    // Destroy previous cropper if exists
+    if (cropper) cropper.destroy();
+
+    cropper = new Cropper(cropPreview, {
+        aspectRatio: 800 / 480, // lock to e-ink ratio
+        viewMode: 1,
+        autoCropArea: 1,
+        movable: true,
+        zoomable: true,
+        rotatable: false,
+        scalable: false,
+    });
+});
+
+
 // -----------------------------
 // Fetch idle art from backend
 // -----------------------------
@@ -73,24 +100,35 @@ async function surpriseArt() {
 // -----------------------------
 
 async function sendImageWithMessage() {
-    const input = document.getElementById("imageFile");
     const message = document.getElementById("imageMessage").value.trim();
+    if (!cropper) return alert("Choose an image first");
 
-    if (!input.files.length) return alert("Choose an image");
+    // Get cropped canvas
+    const canvas = cropper.getCroppedCanvas({
+        width: 800,
+        height: 480
+    });
 
-    const formData = new FormData();
-    formData.append("file", input.files[0]);
-    if (message) formData.append("temp_msg", message);
+    // Convert canvas to Blob
+    canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append("file", blob, "cropped.jpg");
+        if (message) formData.append("temp_msg", message);
 
-    const res = await fetch(`${API_BASE}/send_image`, { method: "POST", body: formData });
-    if (res.ok) {
-        input.value = "";
-        document.getElementById("imageMessage").value = "";
-        setStatus("Image + message uploaded 🖼️");
-    } else {
-        setStatus("Failed to upload ❌");
-    }
+        const res = await fetch(`${API_BASE}/send_image`, { method: "POST", body: formData });
+        if (res.ok) {
+            imageInput.value = "";
+            document.getElementById("imageMessage").value = "";
+            cropPreview.style.display = "none";
+            cropper.destroy();
+            cropper = null;
+            setStatus("Cropped image + message uploaded 🖼️");
+        } else {
+            setStatus("Failed to upload ❌");
+        }
+    }, "image/jpeg", 0.9);
 }
+
 
 
 // -----------------------------
