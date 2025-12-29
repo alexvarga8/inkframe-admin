@@ -71,21 +71,27 @@ async function surpriseArt() {
 // -----------------------------
 // Send image as message
 // -----------------------------
-async function sendImage() {
+
+async function sendImageWithMessage() {
     const input = document.getElementById("imageFile");
+    const message = document.getElementById("imageMessage").value.trim();
+
     if (!input.files.length) return alert("Choose an image");
 
     const formData = new FormData();
     formData.append("file", input.files[0]);
+    if (message) formData.append("temp_msg", message);
 
     const res = await fetch(`${API_BASE}/send_image`, { method: "POST", body: formData });
     if (res.ok) {
         input.value = "";
-        setStatus("Image uploaded 🖼️");
+        document.getElementById("imageMessage").value = "";
+        setStatus("Image + message uploaded 🖼️");
     } else {
         setStatus("Failed to upload ❌");
     }
 }
+
 
 // -----------------------------
 // Send image to idle art

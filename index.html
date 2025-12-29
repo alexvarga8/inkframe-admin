@@ -44,9 +44,13 @@
       </section>
 
       <section>
-        <h2>Add an image</h2>
+        <h2>Add Image + Message</h2>
         <input type="file" id="imageFile" accept="image/*" />
-        <button onclick="sendImage()">Upload</button>
+        <textarea
+          id="imageMessage"
+          placeholder="Optional caption/message…"
+        ></textarea>
+        <button onclick="sendImageWithMessage()">Upload</button>
       </section>
 
       <section>
